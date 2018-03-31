@@ -1,11 +1,12 @@
 # __Author__:Zcc
 import logging
 from sklearn.model_selection import train_test_split
-from sklearn.datasets import make_regression, make_classification
+from sklearn.datasets import make_regression, make_classification, make_blobs
 
 from linear_model.Linear_model import LinearRegression, LogisticRegression
 from metrics.metrics import mean_squared_error, accuracy
-
+from clusters.Kmeans import KMeans
+import numpy as np
 logging.basicConfig(level=logging.ERROR)
 
 
@@ -38,10 +39,21 @@ def classification():
     print('classification accuracy', accuracy(y_test, predictions))
     #print(y_test[:10],predictions[:10])
 
+def kmeans_example():
+    X, y = make_blobs(centers=3, n_samples=500, n_features=2,
+                      shuffle=True, random_state=42)
+    clusters = len(np.unique(y))
+    k = KMeans(K=clusters, max_iters=150, init='++')
+    k.fit(X)
+    k.predict()
+    print(k.clusters)
+
+
 
 if __name__=='__main__':
     #regression()
-    classification()
+    #classification()
+    kmeans_example()
 
 
 
