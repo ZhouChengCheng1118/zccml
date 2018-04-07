@@ -7,6 +7,8 @@ from linear_model.Linear_model import LinearRegression, LogisticRegression
 from metrics.metrics import mean_squared_error, accuracy
 from clusters.Kmeans import KMeans
 import numpy as np
+from decomposition.PCA import PCA
+
 logging.basicConfig(level=logging.ERROR)
 
 
@@ -30,14 +32,21 @@ def classification():
                                n_informative=10, random_state=1111,
                                n_classes=2, class_sep=2.5, )
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1,
-                                                        random_state=1111)
+                                                       random_state=1111)
 
-    model = LogisticRegression(lr=0.01, max_iters=10, penalty='l2', C=0.01)
-    model.fit(X_train, y_train)
-    predictions = model.predict(X_test)
-    print(len(predictions.shape))
-    print('classification accuracy', accuracy(y_test, predictions))
-    #print(y_test[:10],predictions[:10])
+    for s in ['svd', 'eigen']:
+        p = PCA(10, solver=s)
+
+        # fit PCA with training data, not entire dataset
+        p.fit(X_train)
+        X_train_reduced = p.transform(X_train)
+        X_test_reduced = p.transform(X_test)
+
+        model = LogisticRegression(lr=0.01, max_iters=10, penalty='l2', C=0.01)
+        model.fit(X_train_reduced, y_train)
+        predictions = model.predict(X_test_reduced)
+        print('classification accuracy', accuracy(y_test, predictions))
+        # print(y_test[:10],predictions[:10])
 
 def kmeans_example():
     X, y = make_blobs(centers=3, n_samples=500, n_features=2,
@@ -52,8 +61,8 @@ def kmeans_example():
 
 if __name__=='__main__':
     #regression()
-    #classification()
-    kmeans_example()
+    classification()
+    #kmeans_example()
 
 
 
