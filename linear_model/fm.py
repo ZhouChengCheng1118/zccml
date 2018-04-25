@@ -1,10 +1,10 @@
 # __Author__:Zcc
 from base.base import BaseEstimator
-from metrics.metrics import mean_squared_error, binary_crossentropy
 import autograd.numpy as np
 from autograd import elementwise_grad
 
-np.random.seed(9999)
+np.random.seed(199)
+EPS = 1e-15
 
 
 class BaseFM(BaseEstimator):
@@ -27,6 +27,9 @@ class BaseFM(BaseEstimator):
         self.max_iter = max_iter
         self.loss = None
         self.loss_grad = None
+        self.wo = None
+        self.w = None
+        self.v = None
 
     def fit(self, X, y=None):
         self._setup_input(X, y)
@@ -43,8 +46,8 @@ class BaseFM(BaseEstimator):
     def _train(self):
         for epoch in range(self.max_iter):
             y_pred = self._predict(self.X)  # 每次更新时使用上次的参数值
-            # 损失函数对预测函数的值求导，后续会乘以预测函数对各个参数求偏导的值
-            loss = self.loss_grad(self.y, y_pred)
+            # 损失函数对预测函数的值求导(这里对实际值求导,应该取负数)，后续会乘以预测函数对各个参数求偏导的值
+            loss = self.loss_grad(y_pred, self.y)
             # loss乘以每列X的特征值，即为损失函数对w的偏导,这里是所有样本的偏导和，还需要除以样本数
             w_grad = np.dot(loss, self.X) / float(self.n_samples)
             # 预测函数对w0的偏导为1，所以loss就是每个样本下，损失函数对w0的偏导(loss里面所有值乘以1)，loss求均值表示沿着所有样本的平均梯度方向更新w0
@@ -56,11 +59,12 @@ class BaseFM(BaseEstimator):
     def _factor_step(self, loss):
         for ix, x in enumerate(self.X):  # 每个样本更新一次v矩阵
             for i in range(self.n_features):
+                v = self.v
                 # 某列v的偏导数，矩阵计算
                 v_grad = loss[ix] * \
-                    (x.dot(self.v).dot(x[i]) - self.v[i] * x[i] ** 2)
+                    (x.dot(v).dot(x[i]) - v[i] * x[i] ** 2)
                 # 每次更新1列的v
-                self.v[i] -= self.lr * (v_grad + 2 * self.reg_v * self.v[i])
+                self.v[i] -= self.lr * (v_grad + 2 * self.reg_v * v[i])
 
     def _predict(self, X=None):
         linear_output = np.dot(X, self.w)
@@ -71,18 +75,30 @@ class BaseFM(BaseEstimator):
 
 
 class FMRegressor(BaseFM):
+
+    @staticmethod
+    def mean_squared_error(predicted, actual):
+        return np.mean((predicted - actual)**2)
+
     def fit(self, X, y=None):
-        self.loss = mean_squared_error
-        self.loss_grad = elementwise_grad(mean_squared_error)
+        self.loss = self.mean_squared_error
+        self.loss_grad = elementwise_grad(self.mean_squared_error)
         super(FMRegressor, self).fit(X, y)
 
 
 class FMClassifier(BaseFM):
+
     def fit(self, X, y=None):
-        self.loss = binary_crossentropy
-        self.loss_grad = elementwise_grad(binary_crossentropy)
+        self.loss = self.binary_crossentropy
+        self.loss_grad = elementwise_grad(self.binary_crossentropy)
         super(FMClassifier, self).fit(X, y)
+
+    @staticmethod
+    def binary_crossentropy(predicted, actual):
+        predicted = np.clip(predicted, EPS, 1 - EPS)
+        return -np.mean(actual * np.log(predicted) +
+                        (1 - actual) * np.log(1 - predicted))
 
     def predict(self, X=None):
         predictions = self._predict(X)
-        return np.sign(predictions)
+        return 0.5*(np.tanh(predictions) + 1)
