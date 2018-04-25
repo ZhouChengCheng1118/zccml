@@ -18,8 +18,7 @@ def regression():
     X, y = make_regression(n_samples=1000, n_features=20,
                            n_informative=10, n_targets=1, noise=0.05,
                            random_state=1111, bias=0.5)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25,
-                                                        random_state=1111)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=1111)
 
     model = LinearRegression(lr=0.01, max_iters=2000, penalty='l2', C=0.03)
     model.fit(X_train, y_train)
@@ -32,8 +31,7 @@ def regressionfm():
     X, y = make_regression(n_samples=1000, n_features=20,
                            n_informative=10, n_targets=1, noise=0.05,
                            random_state=1111, bias=0.5)
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25,
-                                                        random_state=1111)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.25, random_state=1111)
 
     model = FMRegressor(n_components=2, max_iter=200)
     model.fit(X_train, y_train)
@@ -46,8 +44,7 @@ def classification():
     X, y = make_classification(n_samples=1000, n_features=20,
                                n_informative=10, random_state=1111,
                                n_classes=2, class_sep=2.5, )
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1,
-                                                       random_state=1111)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=1111)
 
     for s in ['svd', 'eigen']:
         p = PCA(10, solver=s)
@@ -69,8 +66,7 @@ def classificationfm():
     X, y = make_classification(n_samples=100, n_features=20,
                                n_informative=10, random_state=1111,
                                n_classes=2, class_sep=2.5, )
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1,
-                                                       random_state=1111)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.1, random_state=1111)
 
     model = FMClassifier(n_components=2, max_iter=20)
     model.fit(X_train, y_train)
@@ -88,10 +84,10 @@ def kmeans_example():
     print(k.clusters)
 
 
-if __name__=='__main__':
-    #regression()
+if __name__ == '__main__':
+    # regression()
     classificationfm()
-    #kmeans_example()
+    # kmeans_example()
 
 
 
