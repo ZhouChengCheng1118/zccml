@@ -28,12 +28,12 @@ class GradientBoosting(BaseEstimator):
         y_pred = np.zeros(self.n_samples, np.float32)
 
         for n in range(self.n_estimators):
-            residuals = -elementwise_grad(self.loss)(y_pred, self.y)  # 负梯度
+            residuals = -elementwise_grad(self.loss)(y_pred, self.y)  # 计算负梯度
             tree = DecisionTreeRegression(max_features=self.max_features, max_depth=self.max_depth,
                                           min_samples_split=self.min_samples_split)
             # Pass multiple target values to the tree learner
             targets = {
-                # Residual values
+                # 负梯度值作为拟合目标
                 'y': residuals,
                 # Actual target values
                 'actual': self.y,
@@ -42,8 +42,7 @@ class GradientBoosting(BaseEstimator):
             }
             tree.fit(self.X, targets)
             predictions = tree.predict(self.X)
-            y_pred += self.learning_rate * predictions
-            print(self.loss(y_pred, self.y))
+            y_pred += self.learning_rate * predictions  # 每棵树结果相加
             self.trees.append(tree)
 
     def _predict(self, X=None):
@@ -81,5 +80,5 @@ class GradientBoostingClassifier(GradientBoosting):
         super(GradientBoostingClassifier, self).fit(X, y)
 
     def predict(self, X=None):
-        return 0.5*(np.tanh(self._predict(X)) + 1)
+        return 0.5*(np.tanh(self._predict(X)) + 1)  # 输出的值通过sigmod函数转换
 
