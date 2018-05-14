@@ -1,11 +1,13 @@
 # __Author__:Zcc
 import numpy as np
 
+
 class BaseEstimator(object):
     X = None
     y = None
     y_required = True
     fit_required = True
+
     def _setup_input(self,X,y=None):
         """校验格式
         """
@@ -34,7 +36,7 @@ class BaseEstimator(object):
 
         self.y = y
 
-    def fit(self,X,y=None):
+    def fit(self, X, y=None):
         self._setup_input(X, y)
 
     def predict(self, X=None):
